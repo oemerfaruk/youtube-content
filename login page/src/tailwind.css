@@ -1,3 +1,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components{
+    .card{
+        @apply md:bg-gray-50 flex flex-col mx-auto justify-center items-center md:border md:px-4 md:py-6 md:rounded-xl md:shadow-lg;
+    }
+    .a-img{
+        @apply border mx-2 shadow-lg rounded-lg py-2 w-[45px] hover:bg-gray-200;
+    }
+    .frm-inp{
+        @apply border rounded-lg text-center h-10 my-2;
+    }
+    .btn-blue{
+        @apply bg-blue-500 text-white border-2 border-blue-400 my-2 h-10 rounded-lg hover:bg-blue-400;
+    }
+}

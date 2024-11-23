@@ -6,38 +6,42 @@
     <title>Login Page</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="flex items-center justify-center min-h-screen font-roboto">
-        <div class=" flex-col justify-center lg:border lg:rounded-xl lg:shadow lg:px-4 lg:py-10">
-            <div class="flex flex-col items-center mx-auto">
-                <img class="w-3/5" src="/src/assets/img/seoem.png" alt="#">
-                <h2 class="my-2">
-                    Hesabınıza Giriş Yapın!
-                </h2>
-            </div>
-            <div class="w-4/5 mx-auto text-center my-10">
-                <form class="flex flex-col ">
-                    <input class="border border-black my-2 text-center h-10 rounded-xl" type="text" name="username" id="username" placeholder="Kullanıcı Adınız" autocomplete="off">
-                    <input class="border border-black my-2 text-center h-10 rounded-xl" type="password" name="password" id="password" placeholder="Parolanız">
-                    <div class="flex items-center justify-center">
-                        <input type="checkbox" name="remember" id="remember">
-                        <label class="font-thin text-sm ml-2" for="remember">Beni Hatırla</label>
-                    </div>
-                    <button class="bg-blue-500 text-white my-2 h-10 border border-blue-400 rounded-xl" type="submit">Giriş Yap</button>
-                </form>
-                <a class="font-bold text-sm underline text-blue-500" href="#">Parolamı Unuttum!</a>
-            </div>
-            <hr class="mx-4">
-            <div class="flex flex-col justify-center mx-auto mt-10">
-                <p class="text-sm mb-6 text-center">ya da şunlarla devam edin</p>
-                <div class="flex justify-around">
-                    <a class="border shadow rounded-lg w-[45px] py-2" href="#"><img class="h-[30px] mx-auto" src="/src/assets/img/Google.png" alt="Google Logo"></a>
-                    <a class="border shadow rounded-lg w-[45px] py-2" href="#"><img class="h-[30px] mx-auto" src="/src/assets/img/Facebook.png" alt="Facebook Logo"></a>
-                    <a class="border shadow rounded-lg w-[45px] py-2" href="#"><img class="h-[30px] mx-auto" src="/src/assets/img/Apple.png" alt="Apple Logo"></a>
+<body class="flex items-center justify-center min-h-screen font-roboto max-md:bg-gray-50 bg-white">
+
+    <div class="card">
+
+        <div class="flex flex-col mx-auto items-center">
+            <img class="w-2/5" src="/src/assets/images/seoem.png" alt="seoem logo">
+            <h2 class="my-2">Hesabınıza Giriş Yapın</h2>
+        </div>
+
+        <div class="w-4/5 mx-auto text-center">
+            <form class="flex flex-col" action="">
+                <input class="frm-inp" type="text" name="username" id="username" placeholder="Kullanıcı Adı" autocomplete="off">
+                <input class="frm-inp" type="password" name="password" id="password" placeholder="Parola" autocomplete="off">
+                <div class="flex justify-center">
+                    <input type="checkbox" name="remember" id="remember">
+                    <label class="font-thin text-sm ml-2" for="remember">Beni Hatırla</label>
                 </div>
-            </div>
-            <div class="flex mx-auto mt-5 text-center justify-center">
-                <p class="text-sm">Hesabınız yok mu? <a class="font-bold text-blue-500" href="#">Kaydol</a></p>
+                <button class="btn-blue">Giriş Yap</button>
+            </form>
+            <a class="text-blue-700 font-bold text-sm underline" href="#">Parolamı Unuttum!</a>
+        </div>
+
+        <hr class="mx-4">
+
+        <div class="w-4/5 mx-auto text-center mt-10">
+            <p class="text-sm mb-6">ya da şunlarla devam et</p>
+            <div class="flex justify-around">
+                <a class="a-img" href="#"><img class="mx-auto h-[30px]" src="/src/assets/images/Google.png" alt="Google Logo"></a>
+                <a class="a-img" href="#"><img class="mx-auto h-[30px]" src="/src/assets/images/Facebook.png" alt="Facebook Logo"></a>
+                <a class="a-img" href="#"><img class="mx-auto h-[30px]" src="/src/assets/images/Apple.png" alt="Apple Logo"></a>
             </div>
         </div>
+        <div class="text-center mt-5">
+            <p class="text-sm">Hesabınız yok mu? <a class="text-blue-700 font-bold" href="#">Kaydol</a></p>
+        </div>
+    </div>
+    
 </body>
 </html>
