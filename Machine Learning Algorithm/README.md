@@ -13,3 +13,4 @@ Bu içerik youtube için oluşturulmuştur.
     6. Random Forest Classifier
 - Denetimsiz Öğrenme
     1. K-Means Clustering
+    2. Hierarchical Clustering
