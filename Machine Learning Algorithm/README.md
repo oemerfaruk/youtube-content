@@ -12,3 +12,4 @@ Bu içerik youtube için oluşturulmuştur.
     5. Lineer Regression
     6. Random Forest Classifier
 - Denetimsiz Öğrenme
+    1. K-Means Clustering
