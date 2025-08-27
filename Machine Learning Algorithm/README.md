@@ -14,3 +14,6 @@ Bu içerik youtube için oluşturulmuştur.
 - Denetimsiz Öğrenme
     1. K-Means Clustering
     2. Hierarchical Clustering
+    3. DBSCAN
+    4. PCA
+    5. t-SNE
