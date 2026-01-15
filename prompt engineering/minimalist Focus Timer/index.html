@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClearFocus | Minimalist Odaklanma</title>
+    
+    <!-- Font: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons: Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        accent: {
+                            light: '#FFCC80', 
+                            DEFAULT: '#FFB74D', 
+                            dark: '#F57C00', 
+                        },
+                        dark: '#1F2937',
+                        light: '#F9FAFB',
+                    },
+                    boxShadow: {
+                        'soft': '0 20px 40px -15px rgba(0, 0, 0, 0.05)',
+                        'inner-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.02)',
+                    },
+                    screens: {
+                        'md': '768px',
+                        'lg': '1024px', 
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #F3F4F6;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Smooth Transitions for Buttons */
+        .btn-transition {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-transition:active {
+            transform: scale(0.96);
+        }
+
+        /* Custom Checkbox */
+        .task-checkbox:checked + div {
+            background-color: #FFB74D;
+            border-color: #FFB74D;
+        }
+        .task-checkbox:checked + div svg {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* --- GÜNCELLENEN: Çizgi Animasyonu (Süre Uzatıldı) --- */
+        .strike-anim {
+            position: relative;
+            display: inline-block; 
+            /* Metin rengi değişimi biraz gecikmeli olsun (çizgi bittikten sonra) */
+            transition: color 0.4s ease 0.2s; 
+        }
+        .strike-anim::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 0; /* Başlangıç genişliği */
+            height: 1.5px;
+            background-color: #9CA3AF; /* gray-400 */
+            /* DURATION: 0.8s (Daha yavaş ve belirgin) */
+            transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1); 
+            pointer-events: none;
+        }
+        .strike-anim.active::after {
+            width: 100%; /* Bitiş genişliği */
+        }
+
+        /* --- Satır Flu Efekti --- */
+        .task-completed-row {
+            filter: blur(0.8px) grayscale(0.5); 
+            opacity: 0.6;
+            background-color: #F9FAFB; 
+            border-color: transparent;
+            
+        }
+
+        /* Liste Animasyonları */
+        .task-item {
+            animation: slideIn 0.3s ease-out forwards;
+            /* Genel satır geçiş süresi de hafifçe artırıldı */
+            transition: all 0.6s ease; 
+        }
+        .task-item.deleting {
+            animation: slideOut 0.3s ease-in forwards;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-10px); }
+        }
+
+        /* Progress Circle */
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.5s linear;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #e5e7eb; border-radius: 20px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #d1d5db; }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen flex flex-col items-center py-6 px-4 sm:px-6 md:py-10 lg:px-8 transition-all duration-300">
+
+    <!-- Header -->
+    <header class="w-full max-w-md md:max-w-2xl lg:max-w-5xl flex justify-between items-center mb-6 md:mb-10 transition-all duration-300">
+        <div class="flex items-center gap-2">
+            <div class="bg-white p-2 rounded-xl shadow-sm">
+                <i class="ph-fill ph-target text-accent text-2xl md:text-3xl"></i>
+            </div>
+            <h1 class="text-xl md:text-2xl font-bold tracking-tight text-gray-900">ClearFocus</h1>
+        </div>
+        <button onclick="resetAllData()" class="group flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm transition-all text-gray-400 hover:text-red-500" title="Reset All Data">
+            <span class="text-xs font-medium hidden sm:block opacity-0 group-hover:opacity-100 transition-opacity">Reset</span>
+            <i class="ph ph-trash text-xl"></i>
+        </button>
+    </header>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-md md:max-w-2xl lg:max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start transition-all duration-300">
+
+        <!-- Left Column: Timer -->
+        <div class="lg:col-span-4 lg:sticky lg:top-8 transition-all duration-300">
+            <section class="bg-white rounded-3xl p-8 shadow-soft flex flex-col items-center justify-center relative overflow-hidden border border-white">
+                <!-- Timer Display -->
+                <div class="relative w-56 h-56 sm:w-64 sm:h-64 mb-6 md:mb-8">
+                    <svg class="w-full h-full" viewBox="0 0 120 120">
+                        <circle class="text-gray-50" stroke-width="6" stroke="currentColor" fill="transparent" r="54" cx="60" cy="60" />
+                        <circle 
+                            id="progress-ring"
+                            class="text-[#A8DF8E] progress-ring__circle" 
+                            stroke-width="6" 
+                            stroke-linecap="round" 
+                            stroke="currentColor" 
+                            fill="transparent" 
+                            r="54" cx="60" cy="60" 
+                            stroke-dasharray="339.292" 
+                            stroke-dashoffset="0" 
+                        />
+                    </svg>
+                    
+                    <div class="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center">
+                        <span id="timer-display" class="text-5xl md:text-6xl font-bold text-gray-800 tracking-tighter tabular-nums">25:00</span>
+                        <span id="timer-status" class="text-xs md:text-sm text-gray-400 font-medium mt-2 uppercase tracking-widest">Odaklan</span>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="flex items-center gap-3 w-full">
+                    <button id="reset-btn" class="p-4 rounded-2xl bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 btn-transition shadow-inner-soft">
+                        <i class="ph-fill ph-arrows-counter-clockwise text-xl"></i>
+                    </button>
+                    
+                    <button id="toggle-btn" class="flex-1 py-4 px-6 rounded-2xl bg-gray-900 text-white shadow-lg shadow-gray-200 hover:shadow-xl hover:bg-black btn-transition flex items-center justify-center gap-2 font-medium text-lg">
+                        <i id="toggle-icon" class="ph-fill ph-play"></i>
+                        <span id="toggle-text">Start</span>
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- Right Column: Tasks -->
+        <div class="lg:col-span-8 flex flex-col h-full transition-all duration-300">
+            <section class="bg-white rounded-3xl p-6 md:p-8 shadow-soft border border-white flex-1 min-h-[400px]">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">Tasks</h2>
+                        <p class="text-sm text-gray-400 mt-1">Daily Goals</p>
+                    </div>
+                    <span id="task-count" class="text-xs font-semibold bg-gray-50 text-gray-500 border border-gray-100 px-3 py-1.5 rounded-full">0 Uncompleted</span>
+                </div>
+
+                <!-- Input -->
+                <div class="relative mb-6 group">
+                    <input 
+                        type="text" 
+                        id="task-input" 
+                        placeholder="What is your task?" 
+                        class="w-full bg-gray-50 text-gray-800 rounded-2xl py-4 pl-5 pr-14 outline-none border border-transparent focus:border-accent/30 focus:bg-white focus:shadow-sm transition-all placeholder-gray-400 shadow-inner-soft text-lg"
+                    >
+                    <button id="add-task-btn" class="absolute right-2 top-2 bottom-2 aspect-square bg-white rounded-xl text-accent hover:text-white hover:bg-accent shadow-sm btn-transition border border-gray-100 flex items-center justify-center">
+                        <i class="ph-bold ph-plus text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Task List -->
+                <ul id="task-list" class="flex flex-col gap-3 md:max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                    <!-- JS ile doldurulacak -->
+                </ul>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden flex-col items-center justify-center text-center py-16 opacity-60">
+                    <div class="bg-gray-50 p-4 rounded-full mb-3">
+                        <i class="ph-duotone ph-check-circle text-4xl text-gray-300"></i>
+                    </div>
+                    <p class="text-gray-400 text-sm font-medium">Task List is empty.<br>Start your new journey.</p>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Durum Yönetimi (State) ---
+        const DEFAULT_TIME = 25 * 60; 
+        let timerState = {
+            timeLeft: DEFAULT_TIME,
+            isRunning: false,
+            mode: 'focus' 
+        };
+        
+        let tasks = [];
+        let timerInterval = null;
+        
+        // --- DOM Elementleri ---
+        const timerDisplay = document.getElementById('timer-display');
+        const progressRing = document.getElementById('progress-ring');
+        const toggleBtn = document.getElementById('toggle-btn');
+        const toggleText = document.getElementById('toggle-text');
+        const toggleIcon = document.getElementById('toggle-icon');
+        const resetBtn = document.getElementById('reset-btn');
+        const timerStatus = document.getElementById('timer-status');
+        
+        const taskInput = document.getElementById('task-input');
+        const addTaskBtn = document.getElementById('add-task-btn');
+        const taskList = document.getElementById('task-list');
+        const emptyState = document.getElementById('empty-state');
+        const taskCount = document.getElementById('task-count');
+
+        const radius = progressRing.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+        progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
+        progressRing.style.strokeDashoffset = circumference;
+
+        // --- Başlangıç ---
+        function init() {
+            loadData();
+            renderTasks();
+            updateTimerDisplay();
+            
+            if (timerState.isRunning) {
+                timerState.isRunning = false;
+                saveData();
+            }
+            updateControls();
+        }
+
+        // --- Veri Yönetimi ---
+        function loadData() {
+            const storedTasks = localStorage.getItem('ClearFocusTasks');
+            const storedTimer = localStorage.getItem('ClearFocusTimer');
+            
+            if (storedTasks) tasks = JSON.parse(storedTasks);
+            if (storedTimer) {
+                const parsedTimer = JSON.parse(storedTimer);
+                timerState.timeLeft = parsedTimer.timeLeft;
+                timerState.mode = parsedTimer.mode || 'focus';
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('ClearFocusTasks', JSON.stringify(tasks));
+            localStorage.setItem('ClearFocusTimer', JSON.stringify({
+                timeLeft: timerState.timeLeft,
+                mode: timerState.mode,
+                isRunning: timerState.isRunning
+            }));
+        }
+
+        function resetAllData() {
+            if(confirm("All tasks and timer will been reset?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        // --- Sayaç Mantığı ---
+        function setProgress(percent) {
+            const offset = circumference - (percent / 100) * circumference;
+            progressRing.style.strokeDashoffset = offset;
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timerState.timeLeft / 60);
+            const seconds = timerState.timeLeft % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            document.title = `${minutes}:${seconds.toString().padStart(2, '0')} - ClearFocus`;
+
+            const totalTime = timerState.mode === 'focus' ? DEFAULT_TIME : 5 * 60;
+            const remainingPercent = (timerState.timeLeft / totalTime) * 100; 
+            setProgress(remainingPercent);
+        }
+
+        function toggleTimer() {
+            timerState.isRunning = !timerState.isRunning;
+            updateControls();
+            
+            if (timerState.isRunning) {
+                timerInterval = setInterval(() => {
+                    if (timerState.timeLeft > 0) {
+                        timerState.timeLeft--;
+                        updateTimerDisplay();
+                        saveData();
+                    } else {
+                        timerComplete();
+                    }
+                }, 1000);
+            } else {
+                clearInterval(timerInterval);
+                saveData();
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerState.isRunning = false;
+            timerState.timeLeft = DEFAULT_TIME;
+            timerState.mode = 'focus';
+            updateControls();
+            updateTimerDisplay();
+            saveData();
+        }
+
+        function timerComplete() {
+            clearInterval(timerInterval);
+            timerState.isRunning = false;
+            
+            timerDisplay.classList.add('text-accent');
+            setTimeout(() => timerDisplay.classList.remove('text-accent'), 1000);
+            
+            if (timerState.mode === 'focus') {
+                alert("Süre doldu! Kısa bir mola iyi gelecek.");
+                timerState.mode = 'break';
+                timerState.timeLeft = 5 * 60; 
+            } else {
+                alert("Mola bitti! Odaklanma zamanı.");
+                timerState.mode = 'focus';
+                timerState.timeLeft = DEFAULT_TIME;
+            }
+            updateControls();
+            updateTimerDisplay();
+            saveData();
+        }
+
+        function updateControls() {
+            if (timerState.isRunning) {
+                toggleText.textContent = "Pause";
+                toggleIcon.className = "ph-fill ph-pause";
+                toggleBtn.classList.replace('bg-gray-900', 'bg-accent');
+                toggleBtn.classList.replace('text-white', 'text-gray-900');
+                toggleBtn.classList.replace('hover:bg-black', 'hover:bg-red-200');
+            } else {
+                toggleText.textContent = timerState.timeLeft === DEFAULT_TIME ? "Start" : "Continue";
+                toggleIcon.className = "ph-fill ph-play";
+                toggleBtn.classList.replace('bg-accent', 'bg-gray-900');
+                toggleBtn.classList.replace('text-gray-900', 'text-white');
+            }
+            
+            timerStatus.textContent = timerState.mode === 'focus' ? 'FOCUS' : 'BREAK TIME';
+            timerStatus.className = `text-xs md:text-sm font-medium mt-2 uppercase tracking-widest ${timerState.mode === 'focus' ? 'text-gray-400' : 'text-accent'}`;
+        }
+
+        // --- Görev Listesi Mantığı ---
+        function addTask() {
+            const text = taskInput.value.trim();
+            if (text === '') return;
+
+            const newTask = {
+                id: Date.now(),
+                text: text,
+                completed: false
+            };
+
+            tasks.unshift(newTask);
+            taskInput.value = '';
+            saveData();
+            renderTasks();
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveData();
+                renderTasks();
+            }
+        }
+
+        function deleteTask(id) {
+            const taskEl = document.getElementById(`task-${id}`);
+            if(taskEl) {
+                taskEl.classList.add('deleting'); 
+                setTimeout(() => {
+                    tasks = tasks.filter(t => t.id !== id);
+                    saveData();
+                    renderTasks();
+                }, 300); 
+            }
+        }
+
+        function renderTasks() {
+            taskList.innerHTML = '';
+            const activeCount = tasks.filter(t => !t.completed).length;
+            taskCount.textContent = activeCount > 0 ? `${activeCount} Uncompleted` : 'Completed';
+
+            if (tasks.length === 0) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+            } else {
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+
+                tasks.forEach(task => {
+                    const li = document.createElement('li');
+                    li.id = `task-${task.id}`;
+                    // Tamamlandıysa 'task-completed-row' sınıfını ekle
+                    const completedClass = task.completed ? 'task-completed-row' : 'bg-white border-gray-100 hover:border-gray-300 hover:shadow-sm';
+                    
+                    li.className = `task-item group flex items-start sm:items-center p-3 md:p-4 rounded-2xl border transition-all ${completedClass}`;
+                    
+                    li.innerHTML = `
+                        <label class="flex items-center cursor-pointer relative mt-0.5 sm:mt-0 z-10">
+                            <input type="checkbox" class="task-checkbox sr-only" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})">
+                            <div class="w-6 h-6 border-2 border-gray-200 rounded-lg flex items-center justify-center transition-all mr-3 sm:mr-4 hover:border-accent/50">
+                                <i class="ph-bold ph-check text-white opacity-0 transform scale-50 transition-all text-sm"></i>
+                            </div>
+                        </label>
+                        <!-- Metin alanı ve animasyonlu çizgi -->
+                        <span class="flex-1 text-sm md:text-base font-medium text-gray-700 task-text leading-snug break-all strike-anim ${task.completed ? 'active text-gray-400' : ''}">
+                            ${task.text}
+                        </span>
+                        <button onclick="deleteTask(${task.id})" class="ml-2 text-gray-300 hover:text-red-400 p-2 rounded-lg hover:bg-red-50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all z-10">
+                            <i class="ph-bold ph-trash text-lg"></i>
+                        </button>
+                    `;
+                    taskList.appendChild(li);
+                });
+            }
+        }
+
+        // --- Event Listeners ---
+        toggleBtn.addEventListener('click', toggleTimer);
+        resetBtn.addEventListener('click', resetTimer);
+        addTaskBtn.addEventListener('click', addTask);
+        taskInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addTask();
+        });
+
+        init();
+
+    </script>
+</body>
+</html>
